@@ -202,6 +202,39 @@ Para rodar dentro do container da API:
 docker compose run --rm --no-deps api pytest
 ```
 
+## CI no GitHub Actions
+
+O workflow fica em:
+
+```text
+.github/workflows/ci.yml
+```
+
+Ele roda automaticamente em:
+
+- `pull_request` para `main`;
+- `push` na `main`.
+
+Validacoes executadas:
+
+- instalacao das dependencias Python com cache de pip;
+- lint basico por compilacao Python;
+- testes Pytest da API e pacotes;
+- migrations Alembic contra PostgreSQL de CI;
+- sintaxe PHP do plugin WordPress;
+- estrutura obrigatoria do plugin;
+- ausencia de `.env` real versionado;
+- varredura de padroes comuns de segredos;
+- presenca de `AGENTS.md`, `README.md`, `.env.example` e `docker-compose.yml`.
+
+Falhas comuns:
+
+- erro em `Run tests`: algum teste Pytest falhou;
+- erro em `Validate Alembic migrations`: migration quebrada ou banco inacessivel;
+- erro em `Validate no real env files or hardcoded secrets`: arquivo sensivel ou token foi versionado;
+- erro em `PHP syntax lint`: plugin WordPress com erro de sintaxe;
+- erro em `Validate required files`: arquivo base obrigatorio ausente.
+
 ## Plugin WordPress
 
 O plugin inicial fica em:
