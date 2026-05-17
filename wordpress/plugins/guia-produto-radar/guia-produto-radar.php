@@ -3,7 +3,7 @@
  * Plugin Name: Guia Produto Radar
  * Plugin URI: https://www.guiaproduto.com.br
  * Description: Exibe dados do Guia Produto Radar no WordPress usando uma API externa leve e cacheada.
- * Version: 0.1.1
+ * Version: 0.1.2
  * Author: Guia Produto
  * Text Domain: guia-produto-radar
  * Requires at least: 6.0
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('GPR_VERSION', '0.1.1');
+define('GPR_VERSION', '0.1.2');
 define('GPR_PLUGIN_FILE', __FILE__);
 define('GPR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GPR_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -29,6 +29,7 @@ define('GPR_MIN_CACHE_TTL', MINUTE_IN_SECONDS);
 define('GPR_MAX_CACHE_TTL', DAY_IN_SECONDS);
 
 require_once GPR_PLUGIN_DIR . 'includes/api-client.php';
+require_once GPR_PLUGIN_DIR . 'includes/manual.php';
 require_once GPR_PLUGIN_DIR . 'includes/admin.php';
 require_once GPR_PLUGIN_DIR . 'includes/shortcodes.php';
 

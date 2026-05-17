@@ -16,6 +16,7 @@ No painel do WordPress:
 
 ```text
 Configuracoes > Guia Produto Radar
+Configuracoes > Manual Guia Produto Radar
 ```
 
 Informe a URL base da API. Em desenvolvimento local:
@@ -47,3 +48,17 @@ Nao salve tokens ou credenciais reais no codigo do plugin.
 - Carrega CSS apenas quando algum shortcode e renderizado.
 - Aplica `noindex,nofollow` automaticamente na pagina `/radar-teste/`.
 - Nao depende do Elementor.
+
+## Manual completo
+
+O manual completo esta disponivel no painel do WordPress em:
+
+```text
+Configuracoes > Manual Guia Produto Radar
+```
+
+Tambem existe uma copia tecnica versionada em:
+
+```text
+docs/WORDPRESS_PLUGIN_MANUAL.md
+```

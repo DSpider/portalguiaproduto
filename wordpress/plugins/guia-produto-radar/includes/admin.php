@@ -19,6 +19,14 @@ function gpr_register_admin_page(): void
         'guia-produto-radar',
         'gpr_render_admin_page'
     );
+
+    add_options_page(
+        'Manual Guia Produto Radar',
+        'Manual Guia Produto Radar',
+        'manage_options',
+        'guia-produto-radar-manual',
+        'gpr_render_manual_page'
+    );
 }
 
 function gpr_register_settings(): void
@@ -177,6 +185,11 @@ function gpr_render_admin_page(): void
     ?>
     <div class="wrap">
         <h1><?php echo esc_html__('Guia Produto Radar', 'guia-produto-radar'); ?></h1>
+        <p>
+            <a class="button button-secondary" href="<?php echo esc_url(admin_url('options-general.php?page=guia-produto-radar-manual')); ?>">
+                <?php echo esc_html__('Abrir manual completo do plugin', 'guia-produto-radar'); ?>
+            </a>
+        </p>
         <form method="post" action="options.php">
             <?php
             settings_fields('gpr_settings');
