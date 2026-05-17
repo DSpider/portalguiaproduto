@@ -10,6 +10,7 @@ function gpr_register_shortcodes(): void
     add_shortcode('guia_produto_ranking', 'gpr_render_ranking_shortcode');
     add_shortcode('guia_produto_tendencias', 'gpr_render_trends_shortcode');
     add_action('wp_enqueue_scripts', 'gpr_maybe_enqueue_frontend_assets');
+    add_filter('wp_robots', 'gpr_noindex_radar_test_page');
 }
 
 function gpr_maybe_enqueue_frontend_assets(): void
@@ -56,6 +57,18 @@ function gpr_render_fallback(string $message = ''): string
         '<div class="gpr-box gpr-box--fallback" role="status"><p>%s</p></div>',
         esc_html($message)
     );
+}
+
+function gpr_noindex_radar_test_page(array $robots): array
+{
+    if (!is_page('radar-teste')) {
+        return $robots;
+    }
+
+    $robots['noindex'] = true;
+    $robots['nofollow'] = true;
+
+    return $robots;
 }
 
 function gpr_render_radar_shortcode($atts = array()): string

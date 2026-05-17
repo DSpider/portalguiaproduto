@@ -34,6 +34,8 @@ No Compose de staging:
 
 O Nginx da VPS deve ser o unico ponto publico do staging.
 
+O container `admin` usa Nginx interno apenas para servir HTML/CSS/JS estatico. O proxy publico continua sendo o Nginx da VPS.
+
 ## Pre-requisitos na VPS
 
 Instalar:
@@ -91,6 +93,16 @@ Permitir execucao dos scripts:
 ```bash
 chmod +x infra/scripts/backup_before_deploy.sh
 chmod +x infra/scripts/deploy_staging.sh
+```
+
+Se a VPS retornar `Permission denied` ao executar o deploy, corrija as permissoes e normalize finais de linha:
+
+```bash
+cd /opt/guia-produto-radar
+chmod +x infra/scripts/*.sh
+sed -i 's/\r$//' infra/scripts/*.sh
+bash -n infra/scripts/deploy_staging.sh
+bash -n infra/scripts/backup_before_deploy.sh
 ```
 
 ## Deploy manual

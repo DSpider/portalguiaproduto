@@ -24,6 +24,19 @@ Informe a URL base da API. Em desenvolvimento local:
 http://localhost:18080
 ```
 
+Em staging/producao na mesma VPS, prefira a URL interna:
+
+```text
+http://127.0.0.1:28080
+```
+
+Opcoes disponiveis:
+
+- ambiente: local, staging ou producao;
+- URL base da API;
+- tempo de cache em segundos;
+- modo debug para registrar erros no log quando `WP_DEBUG` estiver ativo.
+
 Nao salve tokens ou credenciais reais no codigo do plugin.
 
 ## Comportamento
@@ -32,4 +45,5 @@ Nao salve tokens ou credenciais reais no codigo do plugin.
 - Usa transients para cache.
 - Mostra fallback amigavel quando a API esta offline.
 - Carrega CSS apenas quando algum shortcode e renderizado.
+- Aplica `noindex,nofollow` automaticamente na pagina `/radar-teste/`.
 - Nao depende do Elementor.
