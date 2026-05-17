@@ -57,7 +57,8 @@ services:
     container_name: gpr_staging_admin
     volumes:
       - ./apps/admin:/usr/share/nginx/html:ro
-      - ./img:/usr/share/nginx/html/img:ro
+      - ./img:/usr/share/nginx/gpr-img:ro
+      - ./infra/nginx/admin-staging-default.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "127.0.0.1:${ADMIN_PORT:-28090}:80"
     healthcheck:
