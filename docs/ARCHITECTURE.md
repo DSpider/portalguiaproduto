@@ -287,6 +287,88 @@ Campos esperados:
 - origem da chamada;
 - erro sanitizado quando aplicavel.
 
+## Motor de Trend Score
+
+O motor de Trend Score fica em `packages/scoring` e e deterministico. Ele nao usa IA, nao consulta fontes externas e nao inventa dados ausentes.
+
+### Entrada
+
+A entrada do calculo deve ser composta por sinais numericos ja coletados e validados por outras partes do sistema:
+
+- crescimento de tendencia em percentual;
+- volume estimado de busca;
+- concorrencia SEO em escala de 0 a 100;
+- disponibilidade em marketplace em escala de 0 a 1;
+- competitividade de preco em escala de 0 a 100;
+- nota media do produto em escala de 0 a 5;
+- quantidade de avaliacoes;
+- taxa estimada de comissao em percentual;
+- idade dos dados em dias;
+- confiabilidade das fontes em escala de 0 a 1.
+
+Campos ausentes nao devem receber valores ficticios. O motor considera campo ausente como zero no componente correspondente e reduz a confianca geral.
+
+### Normalizacao
+
+Todos os sinais sao normalizados para escala de 0 a 100:
+
+- crescimento de tendencia: escala linear entre -20% e 80%;
+- volume de busca: escala logaritmica ate o teto configurado;
+- concorrencia SEO: invertida, onde menor concorrencia gera maior oportunidade;
+- disponibilidade: `marketplace_availability * 100`;
+- preco competitivo: valor ja esperado em escala de 0 a 100;
+- nota media: `rating / 5 * 100`;
+- avaliacoes: escala logaritmica ate o teto configurado;
+- comissao: escala linear ate o teto configurado;
+- recencia: 100 para dados frescos e queda linear ate zero quando ficam antigos;
+- confiabilidade de fonte: `source_confidence * 100`;
+- completude: percentual de campos presentes.
+
+### Sub-scores
+
+Formula configuravel em `packages/scoring/config/default_weights.json`:
+
+```text
+score_trend = tendencia_crescimento
+
+score_seo =
+  volume_busca * 0.65 +
+  oportunidade_seo * 0.35
+
+score_commercial =
+  disponibilidade_marketplace * 0.25 +
+  preco_competitivo * 0.25 +
+  nota_media * 0.20 +
+  quantidade_avaliacoes * 0.15 +
+  potencial_comissao * 0.15
+
+score_confidence =
+  recencia_dados * 0.35 +
+  confiabilidade_fontes * 0.50 +
+  completude_dados * 0.15
+```
+
+### Score total
+
+```text
+score_total =
+  score_trend * 0.30 +
+  score_seo * 0.25 +
+  score_commercial * 0.30 +
+  score_confidence * 0.15
+```
+
+### Recomendacoes
+
+Regras iniciais:
+
+- `criar_pagina`: `score_total >= 75` e `score_confidence >= 55`;
+- `atualizar_pagina`: `score_total >= 60` e `score_confidence >= 55`;
+- `monitorar`: `score_total >= 40`;
+- `ignorar_por_enquanto`: abaixo dos limites anteriores.
+
+Esses limites sao conservadores e devem ser calibrados com dados reais depois que as integracoes estiverem confiaveis.
+
 ## Autenticacao e autorizacao
 
 Endpoints de leitura publica podem existir somente quando forem seguros e cacheaveis.

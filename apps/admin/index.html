@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guia Produto Radar Admin</title>
+  <meta name="theme-color" content="#1493ee">
+  <link rel="icon" type="image/png" href="/img/guia-produto-favicon-150x150.png">
+  <link rel="apple-touch-icon" href="/img/guia-produto-favicon-150x150.png">
+  <link rel="stylesheet" href="./assets/admin.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegacao principal">
+      <div class="brand">
+        <img class="brand-logo" src="/img/guia-produto-logo-white.png" alt="Guia Produto">
+        <div>
+          <strong>Radar Admin</strong>
+          <span>Painel interno</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="#dashboard" data-route="dashboard" class="active">Dashboard</a>
+        <a href="#produtos" data-route="produtos">Produtos</a>
+        <a href="#briefings" data-route="briefings">Briefings</a>
+        <a href="#configuracoes" data-route="configuracoes">Configuracoes</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Ambiente local</p>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="connection" id="connection-status">Verificando API...</div>
+      </header>
+
+      <section id="view" class="view" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <dialog id="json-dialog" class="json-dialog">
+    <form method="dialog">
+      <header>
+        <h2>JSON do briefing</h2>
+        <button class="icon-button" value="close" aria-label="Fechar">x</button>
+      </header>
+      <pre id="json-output"></pre>
+    </form>
+  </dialog>
+
+  <script src="./assets/admin.js" type="module"></script>
+</body>
+</html>

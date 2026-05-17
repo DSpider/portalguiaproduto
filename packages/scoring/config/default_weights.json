@@ -1,0 +1,44 @@
+{
+  "total_weights": {
+    "trend": 0.30,
+    "seo": 0.25,
+    "commercial": 0.30,
+    "confidence": 0.15
+  },
+  "component_weights": {
+    "trend": {
+      "trend_growth": 1.0
+    },
+    "seo": {
+      "search_volume": 0.65,
+      "seo_opportunity": 0.35
+    },
+    "commercial": {
+      "marketplace_availability": 0.25,
+      "price_competitiveness": 0.25,
+      "average_rating": 0.20,
+      "reviews_count": 0.15,
+      "commission_potential": 0.15
+    },
+    "confidence": {
+      "data_recency": 0.35,
+      "source_confidence": 0.50,
+      "data_completeness": 0.15
+    }
+  },
+  "normalization": {
+    "trend_growth_min_percent": -20.0,
+    "trend_growth_max_percent": 80.0,
+    "search_volume_cap": 50000.0,
+    "reviews_count_cap": 1000.0,
+    "commission_rate_cap_percent": 15.0,
+    "fresh_until_days": 3.0,
+    "stale_after_days": 30.0
+  },
+  "recommendation_thresholds": {
+    "create_page": 75.0,
+    "update_page": 60.0,
+    "monitor": 40.0,
+    "minimum_confidence_for_action": 55.0
+  }
+}

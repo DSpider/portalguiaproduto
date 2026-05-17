@@ -168,8 +168,107 @@ Regras obrigatorias:
 - nao preencher `aggregateRating` sem avaliacao confiavel;
 - nao preencher preco sem preco confiavel;
 - nao preencher disponibilidade sem verificacao;
+- nao dizer que o Guia Produto testou o produto se nao houver registro editorial desse teste;
+- nao criar `Review` em nome do Guia Produto sem revisao humana explicita;
 - registrar data de atualizacao;
 - validar schema antes de publicar.
+
+## Modulo tecnico de SEO
+
+O pacote `packages/seo` concentra funcoes puras para preparar paginas SEO sem acoplar essa logica ao WordPress.
+
+Funcoes previstas:
+
+- gerar slug limpo e sem acentos;
+- gerar title SEO objetivo;
+- gerar meta description sem promessas falsas;
+- gerar estrutura H1/H2/H3;
+- gerar canonical URL;
+- gerar breadcrumbs;
+- gerar FAQ;
+- gerar JSON-LD para `Product`, `FAQPage`, `BreadcrumbList`, `ItemList`, `Organization` e `WebSite`;
+- validar schemas basicos;
+- bloquear conteudo fino antes de publicacao.
+
+### Slug
+
+O slug deve ser gerado a partir de texto editorial revisado.
+
+Regras:
+
+- remover acentos;
+- converter para minusculas;
+- trocar espacos por hifens;
+- remover pontuacao;
+- evitar palavras vazias quando possivel;
+- limitar tamanho para manter URLs legiveis.
+
+### Title SEO
+
+O title deve ser deterministico e ajustavel por tipo de pagina.
+
+Regras:
+
+- conter a palavra-chave principal;
+- evitar clickbait;
+- nao citar descontos, testes, avaliacoes ou disponibilidade sem dado confiavel;
+- manter tamanho recomendado para busca.
+
+### Meta description
+
+A meta description deve resumir utilidade e contexto da pagina.
+
+Regras:
+
+- nao inventar preco;
+- nao prometer desconto;
+- nao dizer que ha review proprio sem revisao real;
+- incluir data de atualizacao quando aplicavel;
+- manter texto curto e especifico.
+
+### FAQ
+
+FAQ so deve ser gerado quando houver criterios concretos.
+
+Nao criar FAQ quando:
+
+- houver menos de dois criterios conhecidos;
+- as perguntas forem genericas demais;
+- as respostas dependerem de dados ausentes;
+- a pagina nao tiver utilidade real para busca.
+
+### Schema Product
+
+`Product` pode incluir:
+
+- nome;
+- marca;
+- descricao;
+- imagem;
+- URL;
+- SKU quando disponivel;
+- data de modificacao;
+- `Offer` apenas com preco confiavel;
+- `aggregateRating` apenas com fonte confiavel.
+
+Nao incluir:
+
+- preco sem confianca;
+- `aggregateRating` falso;
+- `Review` atribuido ao Guia Produto sem teste ou revisao humana comprovada;
+- disponibilidade sem verificacao.
+
+### Bloqueio de conteudo fino
+
+Uma pagina deve ser bloqueada ou mantida como rascunho quando tiver sinais como:
+
+- pouco texto util;
+- nenhum produto valido;
+- nenhuma fonte;
+- ausencia de data de atualizacao;
+- falta de criterios originais;
+- repeticao de descricoes de marketplace;
+- ausencia de utilidade clara para o usuario.
 
 ## Conteudo com IA
 
