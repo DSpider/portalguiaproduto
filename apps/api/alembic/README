@@ -1,0 +1,3 @@
+Migrations do Alembic ficarao neste diretorio.
+
+Nenhuma migration foi criada ainda porque a API usa apenas dados mockados nesta fase.

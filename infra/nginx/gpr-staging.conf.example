@@ -1,0 +1,66 @@
+# Exemplo de Nginx para staging do Guia Produto Radar.
+# Dominio sugerido: radar-staging.guiaproduto.com.br
+#
+# Este arquivo nao deve ser usado para producao sem revisao.
+# Antes de ativar:
+# - substituir caminhos de certificados;
+# - validar com `sudo nginx -t`;
+# - restringir acesso ao admin, se o staging ficar publico.
+
+server {
+    listen 80;
+    server_name radar-staging.guiaproduto.com.br;
+
+    # Se usar Cloudflare Full/Full strict, mantenha HTTPS tambem no origin.
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name radar-staging.guiaproduto.com.br;
+
+    # Substitua pelos certificados de staging ou Cloudflare Origin Certificate.
+    ssl_certificate /etc/ssl/guiaproduto/radar-staging/fullchain.pem;
+    ssl_certificate_key /etc/ssl/guiaproduto/radar-staging/privkey.pem;
+
+    client_max_body_size 2m;
+
+    add_header X-Robots-Tag "noindex, nofollow, noarchive" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Recomendado enquanto o admin nao tiver autenticacao propria:
+    # auth_basic "Guia Produto Radar Staging";
+    # auth_basic_user_file /etc/nginx/.htpasswd-gpr-staging;
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_http_version 1.1;
+
+    location = /health {
+        proxy_pass http://127.0.0.1:28080/health;
+    }
+
+    location = /version {
+        proxy_pass http://127.0.0.1:28080/version;
+    }
+
+    location = /openapi.json {
+        proxy_pass http://127.0.0.1:28080/openapi.json;
+    }
+
+    location /docs {
+        proxy_pass http://127.0.0.1:28080/docs;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:28080/api/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:28090/;
+    }
+}

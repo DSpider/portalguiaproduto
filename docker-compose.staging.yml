@@ -1,0 +1,116 @@
+name: guia-produto-radar-staging
+
+services:
+  api:
+    image: gp-radar-api:staging
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: gpr_staging_api
+    environment:
+      APP_ENV: ${APP_ENV:-staging}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      ADMIN_CORS_ORIGINS: ${ADMIN_CORS_ORIGINS}
+    ports:
+      - "127.0.0.1:${API_PORT:-28080}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - gpr_staging_internal
+
+  worker:
+    image: gp-radar-worker:staging
+    build:
+      context: ./apps/worker
+    container_name: gpr_staging_worker
+    environment:
+      APP_ENV: ${APP_ENV:-staging}
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      WORKER_HEARTBEAT_SECONDS: ${WORKER_HEARTBEAT_SECONDS:-60}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - gpr_staging_internal
+
+  admin:
+    image: nginx:1.27-alpine
+    container_name: gpr_staging_admin
+    volumes:
+      - ./apps/admin:/usr/share/nginx/html:ro
+      - ./img:/usr/share/nginx/html/img:ro
+    ports:
+      - "127.0.0.1:${ADMIN_PORT:-28090}:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - gpr_staging_internal
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gpr_staging_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_staging_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - gpr_staging_internal
+
+  redis:
+    image: redis:7-alpine
+    container_name: gpr_staging_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_staging_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - gpr_staging_internal
+
+volumes:
+  postgres_staging_data:
+  redis_staging_data:
+
+networks:
+  gpr_staging_internal:
+    driver: bridge

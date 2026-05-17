@@ -1,0 +1,81 @@
+name: guia-produto-radar
+
+services:
+  api:
+    image: gp-radar-api:local
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: gp_radar_api
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://gp_local_user:gp_local_password_change_me@postgres:5432/guia_produto_radar}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    ports:
+      - "${API_PORT:-18080}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  worker:
+    image: gp-radar-worker:local
+    build:
+      context: ./apps/worker
+    container_name: gp_radar_worker
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://gp_local_user:gp_local_password_change_me@postgres:5432/guia_produto_radar}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      WORKER_HEARTBEAT_SECONDS: ${WORKER_HEARTBEAT_SECONDS:-30}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: gp_radar_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-guia_produto_radar}
+      POSTGRES_USER: ${POSTGRES_USER:-gp_local_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gp_local_password_change_me}
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: gp_radar_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-16379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

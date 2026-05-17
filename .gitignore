@@ -1,0 +1,46 @@
+# Ambiente
+.env
+.env.*
+!.env.example
+!.env.staging.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Build e pacotes
+build/
+dist/
+*.egg-info/
+
+# Docker e runtime local
+docker-data/
+*.pid
+
+# IDEs e sistema operacional
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Node/admin futuro
+node_modules/
+.next/
+coverage/
