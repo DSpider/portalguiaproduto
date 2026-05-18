@@ -36,8 +36,10 @@ def test_admin_cors_allows_configured_origin() -> None:
         headers={
             "Origin": origin,
             "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "Authorization",
         },
     )
 
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == origin
+    assert "Authorization" in response.headers["access-control-allow-headers"]

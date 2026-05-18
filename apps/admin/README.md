@@ -42,9 +42,38 @@ http://localhost:18080
 
 O valor fica salvo no `localStorage` do navegador.
 
+## Autenticacao
+
+O admin valida acesso em:
+
+```text
+GET /api/v1/admin/status
+```
+
+Em local, a autenticacao pode ficar desativada com:
+
+```text
+ADMIN_AUTH_ENABLED=false
+```
+
+Em staging e producao, use:
+
+```text
+ADMIN_AUTH_ENABLED=true
+ADMIN_API_TOKEN=valor-gerado-no-servidor
+```
+
+O token deve ser gerado fora do Git. Na VPS, use:
+
+```bash
+openssl rand -hex 32
+```
+
+O painel salva o token apenas no `sessionStorage`, ou seja, ele dura somente enquanto a sessao do navegador estiver aberta.
+
 ## Limites atuais
 
-- Sem login nesta fase.
+- Autenticacao simples por token administrativo.
 - Briefings gerados ficam no `localStorage`.
 - Ofertas e tendencias detalhadas dependem de endpoints futuros.
 - Produtos ainda vêm dos endpoints mockados da API.

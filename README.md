@@ -165,6 +165,14 @@ Telas disponiveis:
 
 O admin consome a API em `http://localhost:18080` por padrao. A URL pode ser alterada na tela `Configuracoes`.
 
+O painel valida acesso pela rota protegida:
+
+```text
+GET /api/v1/admin/status
+```
+
+Em local, a autenticacao administrativa fica desativada por padrao. Em staging, defina `ADMIN_AUTH_ENABLED=true` e gere `ADMIN_API_TOKEN` diretamente na VPS.
+
 ## Identidade visual
 
 Os ativos oficiais do Guia Produto ficam em:

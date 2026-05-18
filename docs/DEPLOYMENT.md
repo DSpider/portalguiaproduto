@@ -81,10 +81,26 @@ Obrigatorio trocar:
 
 - `POSTGRES_PASSWORD`;
 - a senha embutida em `DATABASE_URL`;
+- `ADMIN_API_TOKEN`;
 - `ADMIN_CORS_ORIGINS`, se o dominio final for diferente;
 - `GPR_BRANCH`, se staging usar uma branch diferente de `main`.
 
 Se a senha tiver caracteres reservados em URL, encode a senha em `DATABASE_URL`.
+
+Gere o token administrativo diretamente na VPS:
+
+```bash
+openssl rand -hex 32
+```
+
+Copie o resultado para:
+
+```text
+ADMIN_AUTH_ENABLED=true
+ADMIN_API_TOKEN=valor-gerado-na-vps
+```
+
+Esse token sera usado pelo painel interno para acessar rotas administrativas e endpoints de escrita, como a geracao de briefing.
 
 Nao commitar `.env.staging`.
 
@@ -310,6 +326,8 @@ docker compose --env-file .env.staging -f docker-compose.staging.yml run --rm ap
 
 - [ ] `.env.staging` criado na VPS e fora do Git.
 - [ ] Senha do PostgreSQL trocada nos dois campos: `POSTGRES_PASSWORD` e `DATABASE_URL`.
+- [ ] `ADMIN_AUTH_ENABLED=true`.
+- [ ] `ADMIN_API_TOKEN` gerado na VPS e nao versionado.
 - [ ] Docker Compose de staging valida com `config`.
 - [ ] Scripts validam com `bash -n infra/scripts/deploy_staging.sh` e `bash -n infra/scripts/backup_before_deploy.sh`.
 - [ ] Backup pre-deploy executado.
@@ -319,6 +337,7 @@ docker compose --env-file .env.staging -f docker-compose.staging.yml run --rm ap
 - [ ] HTTPS funcionando no subdominio.
 - [ ] Cloudflare configurado sem cache para API.
 - [ ] Admin protegido por Basic Auth, Access ou regra equivalente.
+- [ ] Admin autentica na API com token administrativo.
 - [ ] API responde `/health`, `/version` e `/api/v1/radar/summary`.
 - [ ] Plugin WordPress aponta para a API de staging.
 - [ ] Paginas de staging com `noindex`.

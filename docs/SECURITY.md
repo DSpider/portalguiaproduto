@@ -75,6 +75,22 @@ Exemplos:
 
 Endpoints publicos de leitura devem retornar apenas dados seguros e cacheaveis.
 
+Nesta fase, o admin interno usa autenticacao simples por token:
+
+- `ADMIN_AUTH_ENABLED=false` em desenvolvimento local por padrao;
+- `ADMIN_AUTH_ENABLED=true` em staging e producao;
+- `ADMIN_API_TOKEN` gerado no servidor e nunca versionado;
+- envio do token por `Authorization: Bearer ...` ou `X-GPR-Admin-Token`;
+- validacao em tempo constante para reduzir vazamento por timing;
+- retorno `503` quando a autenticacao esta ativa, mas o token nao foi configurado.
+
+Rotas protegidas nesta fase:
+
+- `GET /api/v1/admin/status`;
+- `POST /api/v1/content/briefing`, quando `ADMIN_AUTH_ENABLED=true`.
+
+O painel admin salva o token apenas no `sessionStorage` do navegador. Nao salvar token administrativo em `localStorage`, HTML, JavaScript versionado ou documentacao.
+
 ### Autorizacao
 
 Separar permissoes futuras por perfil:

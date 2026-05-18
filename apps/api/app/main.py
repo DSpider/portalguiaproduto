@@ -20,7 +20,7 @@ def create_app() -> FastAPI:
         allow_origins=settings.admin_cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST", "OPTIONS"],
-        allow_headers=["Content-Type"],
+        allow_headers=["Authorization", "Content-Type", "X-GPR-Admin-Token"],
     )
 
     register_error_handlers(application)
