@@ -232,6 +232,18 @@ Uso futuro:
 - comissao;
 - links de afiliado aprovados.
 
+Variaveis de ambiente previstas:
+
+```text
+AMAZON_CREDENTIAL_ID=
+AMAZON_CREDENTIAL_SECRET=
+AMAZON_CREATORS_VERSION=2.1
+```
+
+Essas variaveis devem ser preenchidas somente em `.env.staging` ou `.env.production` na VPS. Nunca preencher valores reais em `.env.example`, `.env.staging.example`, codigo, WordPress, prints ou mensagens.
+
+Nesta fase, o mock apenas informa se as credenciais estao configuradas e qual versao foi selecionada. O segredo nao entra no retorno normalizado, logs ou payload bruto.
+
 ### Mercado Livre
 
 Classe:
@@ -457,16 +469,34 @@ pytest tests/test_connectors.py
 
 ## Proximos passos para integracao real
 
-1. Escolher uma fonte inicial de baixo risco.
-2. Criar classe real mantendo a mesma interface.
-3. Guardar credenciais fora do Git.
-4. Implementar timeout e retry com backoff.
-5. Criar testes com responses falsas.
-6. Registrar limites de uso da API.
-7. Persistir dados normalizados no PostgreSQL.
-8. Integrar registros normalizados ao motor de score.
-9. Adicionar monitoramento por fonte.
-10. Ativar em staging antes de producao.
+1. Rotacionar qualquer credencial que tenha sido exposta fora do cofre/ambiente seguro.
+2. Escolher Amazon como primeira fonte real de menor risco.
+3. Criar classe real mantendo a mesma interface do mock.
+4. Guardar credenciais fora do Git, preferencialmente em `.env.staging` com permissao 600.
+5. Implementar timeout e retry com backoff.
+6. Criar testes com responses falsas.
+7. Registrar limites de uso da API.
+8. Persistir dados normalizados no PostgreSQL.
+9. Integrar registros normalizados ao motor de score.
+10. Adicionar monitoramento por fonte.
+11. Ativar em staging antes de producao.
+
+## Sobre edicao de chaves pelo painel
+
+Nao e recomendado salvar credenciais de marketplace no WordPress ou no admin estatico atual.
+
+Motivos:
+
+- o admin interno ainda nao possui login proprio de aplicacao;
+- localStorage do navegador nao e armazenamento seguro;
+- opcoes do WordPress ficam no banco do WordPress e aumentam o impacto de um vazamento;
+- credenciais de marketplace pertencem ao backend, nao a vitrine publica.
+
+Decisao recomendada nesta fase:
+
+- configurar chaves por `.env.staging` e `.env.production`;
+- exibir no painel apenas status mascarado, como "configurado" ou "nao configurado", quando houver endpoint autenticado;
+- criar editor de segredos somente depois de autenticacao, auditoria e armazenamento criptografado.
 
 ## Nao fazer nesta fase
 

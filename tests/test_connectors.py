@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from packages.connectors import (
+    AmazonCreatorsCredentials,
     BaseConnector,
     ConnectorConfig,
     ConnectorRequest,
@@ -10,6 +11,7 @@ from packages.connectors import (
     MockGoogleTrendsConnector,
     MockInternalDataConnector,
     build_default_mock_connectors,
+    load_amazon_creators_credentials,
     load_connector_config,
 )
 from packages.connectors.models import NormalizedRecord
@@ -55,6 +57,23 @@ def test_connector_config_is_loaded_from_environment(monkeypatch) -> None:
     assert config.enabled is False
     assert config.rate_limit_per_minute == 3
     assert config.timeout_seconds == 1.5
+
+
+def test_amazon_creators_credentials_are_loaded_without_leaking_secret(monkeypatch) -> None:
+    monkeypatch.setenv("AMAZON_CREDENTIAL_ID", "credential-id-demo")
+    monkeypatch.setenv("AMAZON_CREDENTIAL_SECRET", "credential-secret-demo")
+    monkeypatch.setenv("AMAZON_CREATORS_VERSION", "2.1")
+
+    credentials = load_amazon_creators_credentials()
+    response = build_default_mock_connectors()[3].fetch(ConnectorRequest(query="echo dot"))
+    record = response.records[0]
+
+    assert isinstance(credentials, AmazonCreatorsCredentials)
+    assert credentials.is_configured is True
+    assert credentials.version == "2.1"
+    assert record.attributes["credentials_configured"] is True
+    assert record.attributes["api_version"] == "2.1"
+    assert "credential-secret-demo" not in str(record)
 
 
 def test_rate_limit_returns_controlled_error() -> None:
