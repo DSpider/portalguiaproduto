@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from packages.connectors.base import BaseConnector
+from packages.connectors.config import load_amazon_creators_credentials
 from packages.connectors.models import ConnectorRequest, NormalizedRecord
 
 
@@ -98,6 +99,8 @@ class MockAmazonCreatorsConnector(BaseConnector):
     source = "amazon_creators"
 
     def _fetch(self, request: ConnectorRequest) -> list[NormalizedRecord]:
+        credentials = load_amazon_creators_credentials()
+
         return [
             NormalizedRecord(
                 source=self.source,
@@ -117,6 +120,8 @@ class MockAmazonCreatorsConnector(BaseConnector):
                     "marketplace": "amazon",
                     "currency": "BRL",
                     "availability": "in_stock",
+                    "api_version": credentials.version,
+                    "credentials_configured": credentials.is_configured,
                 },
                 confidence=0.68,
                 observed_at=_observed_at(),
