@@ -42,6 +42,14 @@ http://localhost:18080
 
 O valor fica salvo no `localStorage` do navegador.
 
+Quando o admin estiver sendo acessado por um dominio de staging, como:
+
+```text
+https://radar-staging.guiaproduto.com.br
+```
+
+o painel usa esse mesmo dominio como URL padrao da API. Nao use `http://localhost:18080` no navegador externo, porque nesse caso `localhost` aponta para a maquina do visitante, nao para a VPS.
+
 ## Autenticacao
 
 O admin valida acesso em:
@@ -68,6 +76,8 @@ O token deve ser gerado fora do Git. Na VPS, use:
 ```bash
 openssl rand -hex 32
 ```
+
+O painel envia o token pelo header `X-GPR-Admin-Token`. Isso evita conflito com o `Authorization` usado pelo Basic Auth do Nginx ou por protecoes externas do staging.
 
 O painel salva o token apenas no `sessionStorage`, ou seja, ele dura somente enquanto a sessao do navegador estiver aberta.
 
