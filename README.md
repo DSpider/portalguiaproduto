@@ -235,6 +235,26 @@ Falhas comuns:
 - erro em `PHP syntax lint`: plugin WordPress com erro de sintaxe;
 - erro em `Validate required files`: arquivo base obrigatorio ausente.
 
+## Fluxo Git
+
+O fluxo oficial de trabalho esta documentado em:
+
+```text
+docs/GIT_WORKFLOW.md
+```
+
+Resumo operacional:
+
+- desenvolver no Windows/local;
+- criar branch por tarefa;
+- abrir pull request para `main`;
+- aguardar o CI passar;
+- fazer merge;
+- atualizar a VPS com `git pull --ff-only origin main`;
+- rodar `bash infra/scripts/deploy_staging.sh`.
+
+Nao desenvolva diretamente na VPS. Ela deve apenas receber codigo aprovado pelo GitHub.
+
 ## Plugin WordPress
 
 O plugin inicial fica em:
