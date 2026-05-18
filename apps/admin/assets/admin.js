@@ -1,12 +1,12 @@
-const DEFAULT_API_URL = 'http://localhost:18080';
 const STORAGE_KEYS = {
   apiUrl: 'gpr_admin_api_url',
   authToken: 'gpr_admin_auth_token',
   briefings: 'gpr_admin_briefings',
 };
+const DEFAULT_API_URL = getDefaultApiUrl();
 
 const state = {
-  apiUrl: localStorage.getItem(STORAGE_KEYS.apiUrl) || DEFAULT_API_URL,
+  apiUrl: getInitialApiUrl(),
   adminToken: sessionStorage.getItem(STORAGE_KEYS.authToken) || '',
   authenticated: false,
   products: [],
@@ -521,7 +521,7 @@ async function apiPost(path, payload, options = {}) {
 function buildHeaders(options = {}) {
   const headers = {};
   if (options.json) headers['Content-Type'] = 'application/json';
-  if (options.auth && state.adminToken) headers.Authorization = `Bearer ${state.adminToken}`;
+  if (options.auth && state.adminToken) headers['X-GPR-Admin-Token'] = state.adminToken;
   return headers;
 }
 
@@ -539,6 +539,34 @@ async function createApiError(response, fallbackMessage) {
 
 function normalizeApiUrl(value) {
   return value.replace(/\/+$/, '');
+}
+
+function getDefaultApiUrl() {
+  if (window.location.protocol === 'file:' || isLocalBrowserHost()) {
+    return 'http://localhost:18080';
+  }
+
+  return window.location.origin;
+}
+
+function getInitialApiUrl() {
+  const storedApiUrl = localStorage.getItem(STORAGE_KEYS.apiUrl);
+  if (!storedApiUrl) return DEFAULT_API_URL;
+
+  const normalizedStoredApiUrl = normalizeApiUrl(storedApiUrl);
+  if (!isLocalBrowserHost() && isLocalApiUrl(normalizedStoredApiUrl)) {
+    return DEFAULT_API_URL;
+  }
+
+  return normalizedStoredApiUrl;
+}
+
+function isLocalBrowserHost() {
+  return ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+}
+
+function isLocalApiUrl(value) {
+  return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(value);
 }
 
 function logoutAdmin() {

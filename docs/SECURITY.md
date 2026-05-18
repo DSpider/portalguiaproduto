@@ -80,7 +80,8 @@ Nesta fase, o admin interno usa autenticacao simples por token:
 - `ADMIN_AUTH_ENABLED=false` em desenvolvimento local por padrao;
 - `ADMIN_AUTH_ENABLED=true` em staging e producao;
 - `ADMIN_API_TOKEN` gerado no servidor e nunca versionado;
-- envio do token por `Authorization: Bearer ...` ou `X-GPR-Admin-Token`;
+- API aceita token por `Authorization: Bearer ...` ou `X-GPR-Admin-Token`;
+- o admin interno usa `X-GPR-Admin-Token` para nao conflitar com Basic Auth ou Cloudflare Access;
 - validacao em tempo constante para reduzir vazamento por timing;
 - retorno `503` quando a autenticacao esta ativa, mas o token nao foi configurado.
 

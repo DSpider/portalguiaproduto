@@ -270,6 +270,10 @@ Na tela `Configuracoes`, defina a URL da API:
 https://radar-staging.guiaproduto.com.br
 ```
 
+Nao use `http://localhost:18080` no navegador quando estiver acessando o admin pelo dominio. No navegador do visitante, `localhost` aponta para a maquina local, nao para a VPS.
+
+Se o staging estiver protegido por Basic Auth no Nginx, o painel ainda deve usar o token administrativo da API normalmente. O token e enviado por `X-GPR-Admin-Token`, sem substituir o `Authorization` usado pelo Basic Auth.
+
 Validar:
 
 - status de conexao online;
@@ -344,7 +348,7 @@ docker compose --env-file .env.staging -f docker-compose.staging.yml run --rm ap
 
 ## Riscos conhecidos
 
-- O admin ainda nao possui login proprio.
+- O admin usa autenticacao simples por token. Em staging, mantenha tambem Basic Auth, Cloudflare Access ou regra equivalente no Nginx/Cloudflare.
 - O rollback automatico nao reverte schema de banco.
 - O plugin deve ser testado primeiro em WordPress de staging ou copia controlada.
 - O staging nao deve usar credenciais reais de marketplaces.
