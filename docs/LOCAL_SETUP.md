@@ -148,10 +148,23 @@ POSTGRES_USER=gp_local_user
 POSTGRES_PASSWORD=gp_local_password_change_me
 DATABASE_URL=postgresql+psycopg://gp_local_user:gp_local_password_change_me@postgres:5432/guia_produto_radar
 REDIS_URL=redis://redis:6379/0
+ADMIN_CORS_ORIGINS=http://localhost:18090,http://127.0.0.1:18090
+ADMIN_AUTH_ENABLED=false
+ADMIN_API_TOKEN=
 WORKER_HEARTBEAT_SECONDS=30
 ```
 
 Nao inserir credenciais reais em `.env.example`.
+
+Em desenvolvimento local, a autenticacao do admin fica desativada por padrao. Para testar o fluxo com token:
+
+```powershell
+$env:ADMIN_AUTH_ENABLED="true"
+$env:ADMIN_API_TOKEN="token-local-temporario"
+docker compose up --build
+```
+
+Depois acesse o admin e informe o mesmo token. Nao use esse token local em staging ou producao.
 
 ## Estrutura local criada
 

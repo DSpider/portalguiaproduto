@@ -1,14 +1,18 @@
 const DEFAULT_API_URL = 'http://localhost:18080';
 const STORAGE_KEYS = {
   apiUrl: 'gpr_admin_api_url',
+  authToken: 'gpr_admin_auth_token',
   briefings: 'gpr_admin_briefings',
 };
 
 const state = {
   apiUrl: localStorage.getItem(STORAGE_KEYS.apiUrl) || DEFAULT_API_URL,
+  adminToken: sessionStorage.getItem(STORAGE_KEYS.authToken) || '',
+  authenticated: false,
   products: [],
   radar: null,
   version: null,
+  adminStatus: null,
   connectionOk: false,
 };
 
@@ -32,6 +36,66 @@ document.addEventListener('submit', handleSubmit);
 init();
 
 async function init() {
+  await authenticateAdminSession({ silent: true });
+}
+
+async function authenticateAdminSession({ silent = false } = {}) {
+  if (!silent) {
+    setConnection('checking', 'Validando acesso...');
+  }
+
+  try {
+    state.adminStatus = await apiGet('/api/v1/admin/status', { auth: true });
+    state.authenticated = true;
+    await refreshApiData();
+    handleRoute();
+  } catch (error) {
+    state.authenticated = false;
+    state.connectionOk = false;
+    setConnection('error', getAuthErrorMessage(error));
+    renderAuthGate(error);
+  }
+}
+
+function getAuthErrorMessage(error) {
+  if (error?.status === 401) return 'Login necessario';
+  if (error?.status === 503) return 'Auth nao configurada';
+  return 'API offline';
+}
+
+function renderAuthGate(error = null) {
+  setTitle('Acesso ao admin');
+  const message = error?.status === 503
+    ? 'A API esta exigindo token, mas o ADMIN_API_TOKEN ainda nao foi configurado no ambiente.'
+    : 'Informe a URL da API e o token administrativo para acessar o painel.';
+
+  view.innerHTML = `
+    <section class="panel auth-panel">
+      <img class="auth-logo" src="/img/guia-produto-logo-color.png" alt="Guia Produto">
+      <h2>Guia Produto Radar Admin</h2>
+      <p class="muted">${escapeHtml(message)}</p>
+      <form id="auth-form" class="stack">
+        <div class="field">
+          <label for="auth-api-url">URL da API</label>
+          <input id="auth-api-url" name="apiUrl" type="url" value="${escapeAttr(state.apiUrl)}" placeholder="${DEFAULT_API_URL}" required>
+        </div>
+        <div class="field">
+          <label for="admin-token">Token administrativo</label>
+          <input id="admin-token" name="adminToken" type="password" value="${escapeAttr(state.adminToken)}" autocomplete="current-password" placeholder="Cole o token do ambiente">
+        </div>
+        <button class="button" type="submit">Entrar no painel</button>
+      </form>
+      <p class="muted small-note">Em local, o token pode ficar desativado. Em staging e producao, use um token forte salvo apenas no arquivo de ambiente do servidor.</p>
+    </section>
+  `;
+}
+
+async function authenticatedRefresh() {
+  if (!state.authenticated) {
+    renderAuthGate();
+    return;
+  }
+
   await refreshApiData();
   handleRoute();
 }
@@ -59,6 +123,11 @@ async function refreshApiData() {
 }
 
 function handleRoute() {
+  if (!state.authenticated) {
+    renderAuthGate();
+    return;
+  }
+
   const rawHash = window.location.hash.replace('#', '') || 'dashboard';
   const [route, param] = rawHash.split('/');
 
@@ -110,7 +179,8 @@ function renderDashboard() {
           <p><strong>API:</strong> ${escapeHtml(state.apiUrl)}</p>
           <p><strong>Ambiente:</strong> ${escapeHtml(state.version?.environment || 'indisponivel')}</p>
           <p><strong>Versao:</strong> ${escapeHtml(state.version?.version || 'indisponivel')}</p>
-          <p class="muted">Admin local sem autenticacao. Preparado para auth futura.</p>
+          <p><strong>Auth:</strong> ${state.adminStatus?.auth_enabled ? 'token ativo' : 'desativada neste ambiente'}</p>
+          <p class="muted">O token administrativo fica salvo apenas na sessao atual do navegador.</p>
         </div>
       </section>
     </div>
@@ -240,11 +310,16 @@ function renderSettings() {
           ${detail('Ambiente', state.version?.environment || 'indisponivel')}
           ${detail('Versao da API', state.version?.version || 'indisponivel')}
           ${detail('Status de conexao', state.connectionOk ? 'online' : 'offline')}
-          ${detail('Autenticacao', 'pendente para fase futura')}
+          ${detail('Autenticacao', state.adminStatus?.auth_enabled ? 'token ativo' : 'desativada neste ambiente')}
+        </div>
+        <div class="field">
+          <label for="settings-admin-token">Token administrativo</label>
+          <input id="settings-admin-token" name="adminToken" type="password" autocomplete="current-password" placeholder="Preencha apenas para trocar o token da sessao">
         </div>
         <div>
           <button class="button" type="submit">Salvar e testar conexao</button>
           <button class="button secondary" type="button" data-action="refresh-api">Recarregar dados</button>
+          <button class="button secondary" type="button" data-action="logout">Sair</button>
         </div>
       </form>
     </section>
@@ -326,7 +401,10 @@ function handleDocumentClick(event) {
 
   const { action } = actionTarget.dataset;
   if (action === 'refresh-api') {
-    refreshApiData().then(handleRoute);
+    authenticatedRefresh();
+  }
+  if (action === 'logout') {
+    logoutAdmin();
   }
   if (action === 'generate-demo-briefing') {
     generateBriefingForProduct(state.products[0]);
@@ -342,12 +420,28 @@ function handleDocumentClick(event) {
 }
 
 function handleSubmit(event) {
+  if (event.target.id === 'auth-form') {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    state.apiUrl = normalizeApiUrl(String(formData.get('apiUrl') || DEFAULT_API_URL));
+    state.adminToken = String(formData.get('adminToken') || '').trim();
+    localStorage.setItem(STORAGE_KEYS.apiUrl, state.apiUrl);
+    sessionStorage.setItem(STORAGE_KEYS.authToken, state.adminToken);
+    authenticateAdminSession();
+    return;
+  }
+
   if (event.target.id !== 'settings-form') return;
   event.preventDefault();
   const formData = new FormData(event.target);
-  state.apiUrl = String(formData.get('apiUrl') || DEFAULT_API_URL).replace(/\/+$/, '');
+  state.apiUrl = normalizeApiUrl(String(formData.get('apiUrl') || DEFAULT_API_URL));
+  const newToken = String(formData.get('adminToken') || '').trim();
+  if (newToken) {
+    state.adminToken = newToken;
+    sessionStorage.setItem(STORAGE_KEYS.authToken, state.adminToken);
+  }
   localStorage.setItem(STORAGE_KEYS.apiUrl, state.apiUrl);
-  refreshApiData().then(handleRoute);
+  authenticateAdminSession();
 }
 
 async function generateBriefingForProduct(product) {
@@ -382,7 +476,7 @@ async function generateBriefingForProduct(product) {
   };
 
   try {
-    const briefing = await apiPost('/api/v1/content/briefing', payload);
+    const briefing = await apiPost('/api/v1/content/briefing', payload, { auth: true });
     const briefings = getStoredBriefings();
     briefings.unshift({ ...briefing, created_at: new Date().toISOString() });
     localStorage.setItem(STORAGE_KEYS.briefings, JSON.stringify(briefings.slice(0, 25)));
@@ -406,20 +500,54 @@ function getStoredBriefings() {
   }
 }
 
-async function apiGet(path) {
-  const response = await fetch(`${state.apiUrl}${path}`);
-  if (!response.ok) throw new Error(`GET ${path} failed`);
+async function apiGet(path, options = {}) {
+  const response = await fetch(`${state.apiUrl}${path}`, {
+    headers: buildHeaders(options),
+  });
+  if (!response.ok) throw await createApiError(response, `GET ${path} failed`);
   return response.json();
 }
 
-async function apiPost(path, payload) {
+async function apiPost(path, payload, options = {}) {
   const response = await fetch(`${state.apiUrl}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: buildHeaders({ ...options, json: true }),
     body: JSON.stringify(payload),
   });
-  if (!response.ok) throw new Error(`POST ${path} failed`);
+  if (!response.ok) throw await createApiError(response, `POST ${path} failed`);
   return response.json();
+}
+
+function buildHeaders(options = {}) {
+  const headers = {};
+  if (options.json) headers['Content-Type'] = 'application/json';
+  if (options.auth && state.adminToken) headers.Authorization = `Bearer ${state.adminToken}`;
+  return headers;
+}
+
+async function createApiError(response, fallbackMessage) {
+  const error = new Error(fallbackMessage);
+  error.status = response.status;
+  try {
+    const payload = await response.json();
+    error.detail = payload.detail;
+  } catch (parseError) {
+    error.detail = fallbackMessage;
+  }
+  return error;
+}
+
+function normalizeApiUrl(value) {
+  return value.replace(/\/+$/, '');
+}
+
+function logoutAdmin() {
+  state.adminToken = '';
+  state.authenticated = false;
+  state.adminStatus = null;
+  sessionStorage.removeItem(STORAGE_KEYS.authToken);
+  setConnection('error', 'Login necessario');
+  renderAuthGate();
 }
 
 function metric(label, value) {

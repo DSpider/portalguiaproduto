@@ -21,6 +21,14 @@ class Settings(BaseSettings):
         default="http://localhost:18090,http://127.0.0.1:18090",
         validation_alias="ADMIN_CORS_ORIGINS",
     )
+    admin_auth_enabled: bool = Field(
+        default=False,
+        validation_alias="ADMIN_AUTH_ENABLED",
+    )
+    admin_api_token: str = Field(
+        default="",
+        validation_alias="ADMIN_API_TOKEN",
+    )
 
     @property
     def admin_cors_origin_list(self) -> list[str]:
@@ -29,6 +37,11 @@ class Settings(BaseSettings):
             for origin in self.admin_cors_origins.split(",")
             if origin.strip()
         ]
+
+    @property
+    def has_configured_admin_token(self) -> bool:
+        token = self.admin_api_token.strip()
+        return bool(token) and not token.lower().startswith("change-me")
 
     model_config = SettingsConfigDict(
         env_file=".env",
